@@ -1,0 +1,17 @@
+# Development overrides
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./api/src:/app/src:Z
+    environment:
+      NODE_ENV: development
+
+  # In development, run frontend separately with npm run dev
+  frontend:
+    profiles:
+      - production

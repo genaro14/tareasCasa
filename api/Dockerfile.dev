@@ -1,0 +1,15 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install all dependencies (including dev)
+COPY package*.json ./
+RUN npm ci
+
+# Source will be mounted as volume in dev
+# Copy as fallback
+COPY src ./src
+
+EXPOSE 3000
+
+CMD ["node", "src/index.js"]

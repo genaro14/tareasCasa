@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: tareas-casa-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: tareas_casa
+      MYSQL_USER: tareas_user
+      MYSQL_PASSWORD: tareas_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./db/seeds:/docker-entrypoint-initdb.d/seeds
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - tareas-network
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: tareas-casa-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - tareas-network
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: tareas-casa-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db
+      DB_USER: tareas_user
+      DB_PASSWORD: tareas_password
+      DB_NAME: tareas_casa
+      DB_PORT: 3306
+      PORT: 3000
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRES_IN: 7d
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - tareas-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        VITE_API_URL: http://localhost:3000/api
+    container_name: tareas-casa-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+    networks:
+      - tareas-network
+
+networks:
+  tareas-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
