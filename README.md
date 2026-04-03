@@ -24,8 +24,8 @@ La aplicación estará disponible en:
 
 | Usuario | Contraseña |
 |---------|------------|
-| gena    | changeme   |
-| chechu  | changeme   |
+| user1    | changeme   |
+| user2 | changeme   |
 
 ⚠️ **Importante**: Cambia las contraseñas después del primer login en Ajustes.
 
